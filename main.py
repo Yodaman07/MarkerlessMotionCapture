@@ -1,43 +1,28 @@
-import cv2 as cv
 import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
+import cv2 as cv
 
-# help from https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker/python#live-stream_1
+drawing_util = mp.solutions.drawing_utils
+mp_pose = mp.solutions.pose # code help from various youtube videos
 
-
-model_path = "pose_landmarker_full.task"
-
-PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
-VisionRunningMode = mp.tasks.vision.RunningMode
 cam = cv.VideoCapture(0)
-
-
-def callback(result: PoseLandmarkerResult, img: mp.Image, timestamp: int):
-    print(result.pose_landmarks)
-    cv.imshow("stream", img.numpy_view())
-
-
-options = vision.PoseLandmarkerOptions(
-    base_options=python.BaseOptions(model_asset_path=model_path),
-    running_mode=VisionRunningMode.LIVE_STREAM,
-    result_callback=callback
-)
-
-time = 0
-with vision.PoseLandmarker.create_from_options(
-        options) as poseLandmarker:  # additional help from https://github.com/google-ai-edge/mediapipe/issues/
-    while cam.isOpened():
+if not cam.isOpened():
+    print("Unable to access camera")  # kill the program if the camera is not accessed
+    cam.release()
+    exit()
+with mp_pose.Pose() as pose:
+    while True:
         retrieved, frame = cam.read()
+
         if not retrieved:
             print("Stream has likely ended")
             break
-        time += 1
 
-        mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-        poseLandmarker.detect_async(mp_img, time)
+        result = pose.process(frame)
+        drawing_util.draw_landmarks(frame, result.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+
+        cv.imshow("stream", frame)
         # https://stackoverflow.com/questions/5217519/what-does-opencvs-cvwaitkey-function-do <-- how waitKey works
-        if cv.waitKey(5) == ord("q"):  # gets the unicode value for q
+        if cv.waitKey(1) == ord("q"):  # gets the unicode value for q
             break
 
 cam.release()
