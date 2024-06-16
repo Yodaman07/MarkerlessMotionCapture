@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 
 # copied basic cam code from the main.py which was copied from one of my previous projects
-# object detection code from https://www.youtube.com/watch?v=RaCwLrKuS1w
+# object detection code from https://www.youtube.com/watch?v=RaCwLrKuS1w and https://docs.opencv.org/3.4/d4/d70/tutorial_hough_circle.html
 
 prevCircle = None
 dist = lambda x1, y1, x2, y2: (x1 - x2) ** 2 + (y1 - y2) ** 2  # measures the distance between 2 circles
